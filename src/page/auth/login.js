@@ -99,6 +99,8 @@ export default function Login() {
     } catch (error) {
       console.error("Login error:", error);
       openSnackbar({ type: "error", content: "Something went wrong!" });
+    } finally {
+      reset();
     }
   };
 

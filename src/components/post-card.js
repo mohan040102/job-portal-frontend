@@ -3,6 +3,7 @@ import api from "../api/axios-instance";
 import { useSnackbar } from "../hook/snack-bar";
 import localStorageService from "../services/local-storage-service";
 import Spinner from "./spinner";
+import { useState } from "react";
 
 const PostCard = ({ post, user }) => {
   const openSnackbar = useSnackbar();
