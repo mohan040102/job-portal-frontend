@@ -1,35 +1,33 @@
-import { useContext, useState } from "react";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
+  Button,
   Card,
   CardContent,
   CardHeader,
-  TextField,
-  Grid,
-  Button,
-  InputAdornment,
-  IconButton,
-  useTheme,
   FormControl,
+  Grid,
+  IconButton,
+  InputAdornment,
   InputLabel,
-  Select,
   MenuItem,
+  Select,
+  TextField,
   Typography,
+  useTheme,
 } from "@mui/material";
-import Divider from "@mui/material/Divider";
-import { FormProvider, get, set, useForm } from "react-hook-form";
-import { Api, Visibility, VisibilityOff } from "@mui/icons-material";
-import * as Yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useNavigate } from "react-router";
 import Link from "@mui/material/Link";
-import { useDispatch, useSelector } from "react-redux";
-import storageService from "../../services/local-storage-service";
-import { useSnackbar } from "../../hook/snack-bar";
-import GradientBackground from "../../components/gradient-background";
-import Spinner from "../../components/spinner";
-import { loginAsync, getUser } from "../../services/auth-service";
-import { UserContext } from "../../context/user-context";
+import { useContext, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router";
+import * as Yup from "yup";
 import api from "../../api/axios-instance";
+import GradientBackground from "../../components/gradient-background";
+import { UserContext } from "../../context/user-context";
+import { useSnackbar } from "../../hook/snack-bar";
+import { getUser, loginAsync } from "../../services/auth-service";
+import storageService from "../../services/local-storage-service";
 
 export default function Login() {
   const theme = useTheme();
@@ -56,7 +54,7 @@ export default function Login() {
     password: Yup.string().min(8).required("Password is required"),
     user_type: Yup.string().oneOf(
       ["jobseeker", "employer"],
-      "User type is required"
+      "User type is required",
     ),
   };
 
@@ -73,6 +71,7 @@ export default function Login() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = methods;
 
@@ -81,7 +80,7 @@ export default function Login() {
       if (isLoginForm) {
         setLoading(true);
         await loginAsync(data, { rejectWithValue: (error) => error });
-        const user = await getUser(data.email);
+        const user = await getUser();
         setUser(user);
         setLoading(false);
 
@@ -89,7 +88,7 @@ export default function Login() {
           navigate("/");
         } else {
           const errorMessage = "Login Failed! Please try again";
-        
+
           openSnackbar({ type: "error", content: errorMessage });
         }
       } else {
@@ -132,108 +131,104 @@ export default function Login() {
                 autoComplete="off"
               >
                 <Grid container spacing={2}>
-                  {isLoginForm ? (
-                    <>
-                      <Grid size={{ xs: 12 }}>
-                        <TextField
-                          label="Email"
-                          fullWidth
-                          variant="outlined"
-                          {...register("email")}
-                          error={!!errors.email}
-                          helperText={errors.email?.message}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12 }}>
-                        <TextField
-                          label="Password"
-                          fullWidth
-                          variant="outlined"
-                          type={showPassword ? "text" : "password"}
-                          {...register("password")}
-                          error={!!errors.password}
-                          helperText={errors.password?.message}
-                          onKeyDown={handleKeyPress}
-                          slotProps={{
-                            input: {
-                              endAdornment: (
-                                <InputAdornment position="end">
-                                  <IconButton
-                                    onClick={() =>
-                                      setShowPassword(!showPassword)
-                                    }
-                                    edge="end"
-                                  >
-                                    {showPassword ? (
-                                      <Visibility />
-                                    ) : (
-                                      <VisibilityOff />
-                                    )}
-                                  </IconButton>
-                                </InputAdornment>
-                              ),
-                            },
-                          }}
-                        />
-                      </Grid>
-                    </>
-                  ) : (
-                    <>
-                      <Grid size={{ xs: 12 }}>
-                        <TextField
-                          label="Email"
-                          fullWidth
-                          variant="outlined"
-                          {...register("email")}
-                          error={!!errors.email}
-                          helperText={errors.email?.message}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12 }}>
-                        <TextField
-                          label="Name"
-                          fullWidth
-                          variant="outlined"
-                          {...register("name")}
-                          error={!!errors.name}
-                          helperText={errors.name?.message}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12 }}>
-                        <TextField
-                          label="Password"
-                          fullWidth
-                          variant="outlined"
-                          {...register("password")}
-                          error={!!errors.password}
-                          helperText={errors.password?.message}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12 }}>
-                        <FormControl
-                          fullWidth
-                          variant="outlined"
-                          error={!!errors.user_type}
-                        >
-                          <InputLabel id="user-type-label">
-                            User Type
-                          </InputLabel>
-                          <Select
-                            labelId="user-type-label"
-                            label="User Type"
-                            defaultValue=""
-                            {...register("user_type")}
+                  {isLoginForm
+                    ? (
+                      <>
+                        <Grid size={{ xs: 12 }}>
+                          <TextField
+                            label="Email"
+                            fullWidth
+                            variant="outlined"
+                            {...register("email")}
+                            error={!!errors.email}
+                            helperText={errors.email?.message}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12 }}>
+                          <TextField
+                            label="Password"
+                            fullWidth
+                            variant="outlined"
+                            type={showPassword ? "text" : "password"}
+                            {...register("password")}
+                            error={!!errors.password}
+                            helperText={errors.password?.message}
+                            onKeyDown={handleKeyPress}
+                            slotProps={{
+                              input: {
+                                endAdornment: (
+                                  <InputAdornment position="end">
+                                    <IconButton
+                                      onClick={() => setShowPassword(!showPassword)}
+                                      edge="end"
+                                    >
+                                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                                    </IconButton>
+                                  </InputAdornment>
+                                ),
+                              },
+                            }}
+                          />
+                        </Grid>
+                      </>
+                    )
+                    : (
+                      <>
+                        <Grid size={{ xs: 12 }}>
+                          <TextField
+                            label="Email"
+                            fullWidth
+                            variant="outlined"
+                            {...register("email")}
+                            error={!!errors.email}
+                            helperText={errors.email?.message}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12 }}>
+                          <TextField
+                            label="Name"
+                            fullWidth
+                            variant="outlined"
+                            {...register("name")}
+                            error={!!errors.name}
+                            helperText={errors.name?.message}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12 }}>
+                          <TextField
+                            label="Password"
+                            fullWidth
+                            variant="outlined"
+                            {...register("password")}
+                            error={!!errors.password}
+                            helperText={errors.password?.message}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12 }}>
+                          <FormControl
+                            fullWidth
+                            variant="outlined"
+                            error={!!errors.user_type}
                           >
-                            <MenuItem value="employer">Employer</MenuItem>
-                            <MenuItem value="jobseeker">Jobseeker</MenuItem>
-                          </Select>
-                        </FormControl>
-                        <Typography variant="caption" color="error">
-                          {errors.user_type?.message}
-                        </Typography>
-                      </Grid>
-                    </>
-                  )}
+                            <InputLabel id="user-type-label">
+                              User Type
+                            </InputLabel>
+                            <Select
+                              labelId="user-type-label"
+                              label="User Type"
+                              defaultValue=""
+                              {...register("user_type")}
+                            >
+                              <MenuItem value="employer">Employer</MenuItem>
+                              <MenuItem value="jobseeker">Jobseeker</MenuItem>
+                            </Select>
+                          </FormControl>
+                          <Typography variant="caption" color="error">
+                            {errors.user_type?.message}
+                          </Typography>
+                        </Grid>
+                      </>
+                    )}
                   <Grid size={12} display={"flex"} justifyContent={"flex-end"}>
                     <Link
                       id="create-user-btn"
@@ -242,7 +237,10 @@ export default function Login() {
                         color: theme.palette.primary.main,
                         cursor: "pointer",
                       }}
-                      onClick={() => setIsLoginForm(!isLoginForm)}
+                      onClick={() => {
+                        reset();
+                        setIsLoginForm(!isLoginForm);
+                      }}
                     >
                       {isLoginForm ? "Create User" : "Login"}
                     </Link>
@@ -254,7 +252,7 @@ export default function Login() {
                       color="primary"
                       sx={{ width: "50%" }}
                     >
-                      {isLoginForm ? "Login": "Create User"}
+                      {isLoginForm ? "Login" : "Create User"}
                     </Button>
                   </Grid>
                 </Grid>

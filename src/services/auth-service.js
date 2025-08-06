@@ -1,6 +1,5 @@
 import api from '../api/axios-instance';
 import localstorageService from '../services/local-storage-service';
-import React from 'react';
 
 export const loginAsync = async (user, { rejectWithValue }) => {
     try {
@@ -20,14 +19,14 @@ export const loginAsync = async (user, { rejectWithValue }) => {
     }
   };
 
-export const getUser = async (email) => {
+export const getUser = async () => {
   const token = localstorageService.getToken();
    const headers = {
         headers: {
             Authorization: `Bearer ${token.token}`,
         },
     };
-        const getUser = await api.get(`user/${email}`, headers);
+        const getUser = await api.get(`user`, headers);
         return getUser.data;
 }
 

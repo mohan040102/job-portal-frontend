@@ -1,34 +1,35 @@
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import LogoutIcon from "@mui/icons-material/Logout";
 import {
   AppBar,
   Box,
+  Button,
   CssBaseline,
   IconButton,
-  Toolbar,
-  Tabs,
-  Tab,
-  Typography,
-  Menu,
-  MenuItem,
   ListItemIcon,
   ListItemText,
+  Menu,
+  MenuItem,
+  Tab,
+  Tabs,
+  Toolbar,
+  Typography,
   useMediaQuery,
-  Button,
 } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import LogoutIcon from "@mui/icons-material/Logout";
-import ConfirmationDialog from "../components/confirmation-dialogue";
-import config from "../config/config";
-import { useContext, useEffect, useId, useState } from "react";
-import { logoutAsync } from "../services/auth-service";
-import api from "../api/axios-instance";
-import localStorageService from "../services/local-storage-service";
-import PostCard from "../components/post-card";
-import { v4 as uuidV4 } from "uuid";
 import Grid from "@mui/material/Grid";
-import { UserContext } from "../context/user-context";
+import { useTheme } from "@mui/material/styles";
+import { useContext, useEffect, useId, useState } from "react";
 import { set } from "react-hook-form";
+import { v4 as uuidV4 } from "uuid";
+import api from "../api/axios-instance";
+import ConfirmationDialog from "../components/confirmation-dialogue";
 import CreateJobForm from "../components/job-form";
+import PostCard from "../components/post-card";
+import config from "../config/config";
+import { UserContext } from "../context/user-context";
+import { getUser, logoutAsync } from "../services/auth-service";
+import localStorageService from "../services/local-storage-service";
+import { useNavigate } from "react-router-dom";
 
 export default function RootLayout() {
   const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +38,8 @@ export default function RootLayout() {
   const message = "Are you sure want to logout?";
   const theme = useTheme();
   const [openJobDialog, setOpenJobDialog] = useState(false);
-  const { user } = useContext(UserContext);
+  const { user, setUser } = useContext(UserContext);
+  const [userData, setUserData] = useState(user);
 
   const [jobs, setJobs] = useState([]);
 
@@ -46,9 +48,25 @@ export default function RootLayout() {
     await fetchJobs();
   };
 
+  const fetchUserData = async () => {
+    const userData = await getUser();
+    setUser(userData);
+    setUserData(userData);
+  };
+
+  useEffect(() => {
+    if (!user) {
+      fetchUserData();
+    }
+  }, [user]);
+
+  const navigate = useNavigate();
+
   const handleClose = () => {
     setIsLoading(false);
     setAnchorEl(null);
+    setIsConfirmationDialog(false);
+    navigate("/login");
   };
   const handleConfirmLogout = () => {
     setAnchorEl(null);
@@ -64,8 +82,8 @@ export default function RootLayout() {
     }
   };
   const handleLogout = async () => {
-    await logoutAsync();
     handleClose();
+    await logoutAsync();
   };
 
   const fetchJobs = async () => {
@@ -80,6 +98,8 @@ export default function RootLayout() {
   useEffect(() => {
     fetchJobs();
   }, []);
+
+  console.log("users", userData);
 
   const handleMenu = (event) => setAnchorEl(event.currentTarget);
 
@@ -139,17 +159,17 @@ export default function RootLayout() {
       >
         <Grid item>
           <Typography variant="h6" fontWeight={"bold"}>
-            {`Hi ${user?.name}`}
+            {`Welcome to Job Portal, ${user?.name || "Guest"}`}
           </Typography>
         </Grid>
-        {user?.user_type !== "jobseeker" && (
+        {userData?.user_type === "employer" && (
           <Grid item>
             <Button onClick={() => setOpenJobDialog(true)}>Create Job</Button>
           </Grid>
         )}
       </Grid>
 
-      <Grid container spacing={2} sx={{ padding: 2 }}>
+      <Grid container spacing={2} display={"flex"} sx={{ padding: 2 }}>
         {jobs.map((job) => (
           <Grid
             item
@@ -159,7 +179,7 @@ export default function RootLayout() {
             key={uuidV4()}
             sx={{ display: "flex", flexDirection: "column" }}
           >
-            <PostCard post={job} />
+            <PostCard post={job} user={userData}/>
           </Grid>
         ))}
       </Grid>

@@ -1,8 +1,28 @@
-import { Box, Card, CardContent, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, Typography } from "@mui/material";
+import api from "../api/axios-instance";
+import { useSnackbar } from "../hook/snack-bar";
+import localStorageService from "../services/local-storage-service";
 
-const PostCard = ({ post }) => {
+const PostCard = ({ post, user }) => {
+  const openSnackbar = useSnackbar();
+  const applyJob = async () => {
+    try {
+      const headers = {
+        headers: {
+          Authorization: `Bearer ${localStorageService.getToken().token}`,
+        },
+      };
+      await api.post("job/apply", { id: post._id }, headers);
+      openSnackbar({ type: "success", message: "Job applied successfully!" });
+    } catch (error) {
+      openSnackbar({ type: "error", message: error.response?.data?.message || "Failed to apply for the job" });
+    }
+  };
+  
+  const isJobApplied = user?.user_applied_jobs?.includes(post._id);
   return (
     <Card
+      fullWidth
       variant="outlined"
       sx={{
         width: "100%",
@@ -34,6 +54,19 @@ const PostCard = ({ post }) => {
         <Typography variant="body2" color="textSecondary">
           {post.description}
         </Typography>
+
+        {user?.user_type === "jobseeker"
+          && (
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={isJobApplied}
+              sx={{ mt: 2 }}
+              onClick={applyJob}
+            >
+              {isJobApplied ? "Applied" : "Apply Now"}
+            </Button>
+          )}
       </CardContent>
     </Card>
   );
