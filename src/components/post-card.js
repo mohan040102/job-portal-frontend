@@ -2,23 +2,28 @@ import { Box, Button, Card, CardContent, Typography } from "@mui/material";
 import api from "../api/axios-instance";
 import { useSnackbar } from "../hook/snack-bar";
 import localStorageService from "../services/local-storage-service";
+import Spinner from "./spinner";
 
 const PostCard = ({ post, user }) => {
   const openSnackbar = useSnackbar();
+  const [isLoading, setIsLoading] = useState(false);
   const applyJob = async () => {
     try {
+      setIsLoading(true);
       const headers = {
         headers: {
           Authorization: `Bearer ${localStorageService.getToken().token}`,
         },
       };
       await api.post("job/apply", { id: post._id }, headers);
-      openSnackbar({ type: "success", message: "Job applied successfully!" });
+      openSnackbar({ type: "success", content: "Job applied successfully!" });
     } catch (error) {
-      openSnackbar({ type: "error", message: error.response?.data?.message || "Failed to apply for the job" });
+      openSnackbar({ type: "error", content: error.response?.data?.message || "Failed to apply for the job" });
+    } finally {
+      setIsLoading(false);
     }
   };
-  
+
   const isJobApplied = user?.user_applied_jobs?.includes(post._id);
   return (
     <Card
@@ -64,7 +69,7 @@ const PostCard = ({ post, user }) => {
               sx={{ mt: 2 }}
               onClick={applyJob}
             >
-              {isJobApplied ? "Applied" : "Apply Now"}
+              {isLoading ? <Spinner size={20} /> : isJobApplied ? "Applied" : "Apply Now"}
             </Button>
           )}
       </CardContent>

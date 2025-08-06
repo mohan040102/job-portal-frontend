@@ -34,7 +34,7 @@ const CreateJobForm = ({ openJobDialog, handleCloseJobDialog }) => {
       };
       await api.post("/job", data, headers);
       handleCloseJobDialog();
-      openSnackbar({ type: "success", message: "Job created successfully!" });
+      openSnackbar({ type: "success", content: "Job created successfully!" });
     } catch (error) {
       console.error("Error creating job:", error);
       openSnackbar({

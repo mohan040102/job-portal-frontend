@@ -216,7 +216,7 @@ export default function Login() {
                             <Select
                               labelId="user-type-label"
                               label="User Type"
-                              defaultValue=""
+                              defaultValue="employer"
                               {...register("user_type")}
                             >
                               <MenuItem value="employer">Employer</MenuItem>
